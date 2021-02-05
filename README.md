@@ -1,8 +1,4 @@
-# ChatBots
-
-## Troubleshooting
-
-
+# Troubleshooting
 
 **Server Error:** const myUser = myStorage.find(user => user.id === id) 
 
