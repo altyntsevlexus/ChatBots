@@ -114,7 +114,6 @@ class App extends Component {
         //showing is-typing
         this.state.socket.on('is-typing', (senderId, typing) => {
 
-            console.log(typing);
             this.setState((state) => {
 
                 const notActiveUsers = state.users.filter(user => user.id !== senderId)
@@ -174,11 +173,16 @@ class App extends Component {
     }
 
     onKeyDown = (e) => {
-        if (e.key === 'Enter') { return }
         const receiverId = this.state.users.find(user => user.activeUser === true).id
         const senderId = this.state.myUser.id
 
         let typing = true
+
+        if (e.key === 'Enter') {
+            typing = false;
+            this.state.socket.emit('is-typing', receiverId, senderId, typing)
+            return
+        }
 
         const timeOutFunction = () => {
             typing = false;

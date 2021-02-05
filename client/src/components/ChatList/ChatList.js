@@ -12,6 +12,7 @@ class ChatList extends Component {
 
     handleSetActiveUser = e => {
         const li = e.target.closest('li')
+        if (!li) { return }
         const activeUser = this.props.users.find(user => user.id === li.id)
 
         if (activeUser.activeUser === true) {
