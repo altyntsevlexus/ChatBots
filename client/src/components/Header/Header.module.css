@@ -1,0 +1,22 @@
+.Header{
+    background-color: white;
+    height: 70px;
+    line-height: 70px;
+    font-size: 25px;
+    font-weight: bold;
+    display: none;
+}
+
+
+@media (min-width: 1200px){
+    .Header{
+        height: 70px;
+        display: block;
+    }
+}
+
+.wrapper{
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+}

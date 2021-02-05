@@ -1,0 +1,80 @@
+.ChatMain{
+    background-color: #d7dfe7;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+@media (min-width: 1200px){
+    .ChatMain{
+        height: inherit;
+        width: 80%;
+    }
+}
+
+/* userarea */
+
+.ActiveUser{
+    background-color: #becbd9;
+    height: 150px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+}
+
+.UserAbout{
+    margin: 10px 20px;
+    width: 850px;
+    overflow-y: scroll;
+    overflow: auto;
+}
+
+.UserName{
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.UserAvatar{
+    max-width: 150px;
+    width: 100%;
+    background-position: center;
+    background-size: cover;
+}
+
+/* textarea */
+
+.IsTyping{
+    text-align: center;
+    height: 15px;
+}
+
+/* sendform */
+
+.SendMessageForm{
+    height: 30px;
+    margin: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.SendMessageInput{
+    width: 80%;
+    outline: none;
+ 
+}
+.SendMessageButton{
+    margin-right: 5px;
+    background-color: #428bca;
+    color: white;
+    width: 18%;
+    height: 30px;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.SendMessageButton:active{
+    box-shadow:inset  black 0px 0px 5px;
+    
+}

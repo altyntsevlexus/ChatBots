@@ -1,0 +1,50 @@
+li{
+    margin-bottom: 5px;
+}
+.liFromMe{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* .liOther{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+} */
+
+.Message{
+    max-width: 60%;
+    width: 100%;
+    margin-right: 5px;
+    font-size: 15px;
+}
+
+.MessageInfoFromMe{
+    background-color: #f0cbb3;
+    display: flex;
+    justify-content: space-between;
+    border-radius: 8px 8px 0 0;
+    padding: 5px 5px 5px 10px;
+    font-weight: bold;
+}
+
+.MessageInfoOther{
+    background-color: #becbd9;
+    display: flex;
+    justify-content: space-between;
+    border-radius: 8px 8px 0 0;
+    padding: 5px 5px 5px 10px;
+    font-weight: bold;
+}
+
+.MessageText{
+    word-wrap: break-word;
+    background-color: white;
+    border-radius: 0 0 8px 8px;
+    padding: 10px;
+}
+
+.MessageTime{
+    opacity: 0.3;
+}

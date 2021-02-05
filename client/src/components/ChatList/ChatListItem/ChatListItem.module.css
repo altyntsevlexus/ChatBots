@@ -1,0 +1,50 @@
+.ChatListItem{
+    height: 70px;
+    display: flex;
+    padding: 10px;
+}
+
+.ItemPhoto{
+    width: 70px;
+    background-position: center;
+    background-size: cover;
+    position: relative;
+}
+
+.ItemInformation{
+    margin: 0px 5px;
+    width: 150px;
+}
+
+.ItemName{
+    width: 100%;
+    font-size: 17px;
+    font-weight: bold;
+    word-wrap: break-word;
+}
+
+.ItemLastMessage{
+    width: 100%;
+    font-size: 12px;
+}
+
+.ActiveUser{
+    background-color: darkgrey;
+}
+
+.Online{
+    position: absolute;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    background-color: green;
+    right: -5px;
+    bottom: -5px;
+}
+
+.Offline{
+    composes: Online;
+    background-color: red;
+}
+
