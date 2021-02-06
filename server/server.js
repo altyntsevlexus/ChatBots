@@ -109,14 +109,21 @@ io.on('connection', socket => {
 
     //spamming bot functioning
     setTimeout(function spam() {
+        const date = new Date()
+        const hours = date.getHours()
+        let minutes = date.getMinutes()
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+
+        const time = `${hours}:${minutes}`
+
         socket.emit('chat-message',
             {
-                time: '00:00',
+                time: time,
                 text: "SPAM",
                 fromMe: false,
                 id: shortid.generate()
             }, 'Spam-bot')
-        setTimeout(spam, randomInteger(1000, 5000))
+        setTimeout(spam, randomInteger(10000, 120000))
     }, randomInteger(10000, 120000))
 
     //showing is typing

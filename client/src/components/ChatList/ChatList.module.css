@@ -34,13 +34,11 @@
     height: 50px;
     border: 1px solid gray;
     outline: none;
+    cursor: pointer;
 }
 
 .ButtonActive{
-    flex-grow: 1;
-    height: 50px;
-    border: none;
-    outline: none;
+    composes: Button;
     background-color: white;
 }
 
