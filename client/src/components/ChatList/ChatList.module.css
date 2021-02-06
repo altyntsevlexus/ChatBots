@@ -39,6 +39,7 @@
 
 .ButtonActive{
     composes: Button;
+    border: none;
     background-color: white;
 }
 
