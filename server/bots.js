@@ -1,3 +1,5 @@
+const shortid = require('shortid')
+
 const bots = [
     {
         id: 'Echo-bot',
