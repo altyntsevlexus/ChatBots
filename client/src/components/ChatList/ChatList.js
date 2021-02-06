@@ -72,7 +72,7 @@ class ChatList extends Component {
                     </ul>
                 </div>
 
-                <input className={styles.Search} value={filter} onChange={this.handleSearch} />
+                <input className={styles.Search} value={filter} onChange={this.handleSearch} placeholder='Search...' />
 
             </div >
         )

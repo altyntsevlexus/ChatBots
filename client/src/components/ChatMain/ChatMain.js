@@ -64,7 +64,7 @@ class ChatMain extends Component {
                 {isTyping ? <p className={styles.IsTyping}>{name} is typing ...</p> : <p className={styles.IsTyping}></p>}
 
                 <form className={styles.SendMessageForm} onSubmit={this.handleSendMessage}>
-                    <input className={styles.SendMessageInput} name='message' value={this.state.message} onChange={this.handleWriteMessage} onKeyPress={this.props.onKeyDown} />
+                    <input className={styles.SendMessageInput} name='message' value={this.state.message} onChange={this.handleWriteMessage} onKeyPress={this.props.onKeyDown} placeholder='Start chatting!' />
                     <button className={styles.SendMessageButton}>Send message</button>
                 </form>
             </div>

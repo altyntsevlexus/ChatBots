@@ -44,6 +44,7 @@
 }
 
 .Search{
+    height: 30px;
     display: block;
     width: 90%;
     margin: 10px auto;

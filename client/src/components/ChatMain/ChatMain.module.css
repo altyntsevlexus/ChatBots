@@ -42,11 +42,12 @@
     background-size: cover;
 }
 
-/* textarea */
+/* isTyping */
 
 .IsTyping{
     text-align: center;
     height: 15px;
+    color: #3a87ae;
 }
 
 /* sendform */
