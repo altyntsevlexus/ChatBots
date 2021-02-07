@@ -1,0 +1,27 @@
+.SendMessageForm{
+    height: 30px;
+    margin: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.SendMessageInput{
+    width: 80%;
+    outline: none;
+ 
+}
+.SendMessageButton{
+    margin-right: 5px;
+    background-color: #428bca;
+    color: white;
+    width: 18%;
+    height: 30px;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.SendMessageButton:active{
+    box-shadow:inset  black 0px 0px 5px;
+    
+}

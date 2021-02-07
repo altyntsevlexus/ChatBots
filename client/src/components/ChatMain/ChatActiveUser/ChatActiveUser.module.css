@@ -1,0 +1,26 @@
+.ActiveUser{
+    background-color: #becbd9;
+    height: 150px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+}
+
+.UserAbout{
+    margin: 10px 20px;
+    width: 850px;
+    overflow-y: scroll;
+    overflow: auto;
+}
+
+.UserName{
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.UserAvatar{
+    max-width: 150px;
+    width: 100%;
+    background-position: center;
+    background-size: cover;
+}
