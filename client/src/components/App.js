@@ -18,6 +18,7 @@ class App extends Component {
         socket: io('http://localhost:4000'),
         users: [],
         myUser: {},
+        currentChat: [],
     }
     componentDidMount() {
 
@@ -91,24 +92,23 @@ class App extends Component {
             })
         })
 
+        this.state.socket.on('get-active-chat', activeChat => {
+            this.setState({
+                currentChat: activeChat
+            })
+        })
+
         //(to(socketID)) message added on socket as !fromMe
         this.state.socket.on('chat-message', (message, senderId) => {
-            this.setState((state) => {
 
-                const notActiveUsers = state.users.filter(user => user.id !== senderId)
-                const activeUser = state.users.find(user => user.id === senderId)
+            const currentUser = this.state.users.find(user => user.activeUser === true)
+            const senderUser = this.state.users.find(user => user.id === senderId)
 
-
-                return {
-                    users: [
-                        ...notActiveUsers,
-                        {
-                            ...activeUser,
-                            chatHistory: [...activeUser.chatHistory, { ...message, fromMe: false }]
-                        }
-                    ].sort(sortFunction)
-                }
-            })
+            if (currentUser === senderUser) {
+                this.setState((state) => ({
+                    currentChat: [...state.currentChat, { ...message, fromMe: false }]
+                }))
+            }
         })
 
         //showing is-typing
@@ -155,6 +155,8 @@ class App extends Component {
             const active = state.users.find(user => user.activeUser === true)
             const other = state.users.filter(user => user.id !== id && user.activeUser !== true)
 
+            this.state.socket.emit('get-active-chat', id)
+
             return {
                 users: [
                     ...other,
@@ -200,22 +202,9 @@ class App extends Component {
 
         this.state.socket.emit('chat-message', message, receiverId, senderId)
 
-        this.setState((state) => {
-
-            const notActiveUsers = state.users.filter(user => user.activeUser === false)
-            const activeUser = state.users.find(user => user.activeUser === true)
-
-
-            return {
-                users: [
-                    ...notActiveUsers,
-                    {
-                        ...activeUser,
-                        chatHistory: [...activeUser.chatHistory, message]
-                    }
-                ].sort(sortFunction)
-            }
-        })
+        this.setState((state) => ({
+            currentChat: [...state.currentChat, message]
+        }))
     }
 
 
@@ -229,7 +218,7 @@ class App extends Component {
                 <Header />
                 <div className={styles.wrapper}>
                     <div className={styles.ChatBox}>
-                        {activeUser ? <ChatMain activeUser={activeUser} onSendMessage={this.onSendMessage} myUserName={this.state.myUser.name} onKeyDown={this.onKeyDown} /> : <p>Choose user</p>}
+                        {activeUser ? <ChatMain activeUser={activeUser} onSendMessage={this.onSendMessage} myUserName={this.state.myUser.name} onKeyDown={this.onKeyDown} currentChat={this.state.currentChat} /> : <p>Choose user</p>}
                         <ChatList users={this.state.users} onSetActiveUser={this.onSetActiveUser} />
                     </div>
                 </div>

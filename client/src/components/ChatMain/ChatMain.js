@@ -9,7 +9,7 @@ class ChatMain extends Component {
 
     render() {
 
-        const { name, description, chatHistory, isTyping, avatar } = this.props.activeUser
+        const { name, description, isTyping, avatar } = this.props.activeUser
 
         return (
 
@@ -17,7 +17,7 @@ class ChatMain extends Component {
 
                 <ChatActiveUser name={name} description={description} avatar={avatar} />
 
-                <ChatMessages chatHistory={chatHistory} activeUserName={name} myUserName={this.props.myUserName} />
+                <ChatMessages currentChat={this.props.currentChat} activeUserName={name} myUserName={this.props.myUserName} />
 
                 {isTyping ? <p className={styles.IsTyping}>{name} is typing ...</p> : <p className={styles.IsTyping}></p>}
 

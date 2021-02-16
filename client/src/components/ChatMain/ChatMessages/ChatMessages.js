@@ -16,12 +16,12 @@ class ChatMessages extends Component {
 
     render() {
 
-        const { chatHistory, activeUserName, myUserName } = this.props
+        const { currentChat, activeUserName, myUserName } = this.props
 
         return (
             <div className={styles.ChatMessages} ref={this.messagesRef}>
                 <ul>
-                    {chatHistory.map(message => (
+                    {currentChat.map(message => (
                         <MessageItem message={message} key={message.id} activeUserName={activeUserName} myUserName={myUserName} />
                     ))}
 

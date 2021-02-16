@@ -8,7 +8,7 @@ const io = require('socket.io')(http, {
 })
 
 //npm imports
-const _ = require('lodash/lang')
+const _ = require('lodash')
 const shortid = require('shortid')
 
 //bots imports
@@ -44,14 +44,14 @@ io.on('connection', socket => {
         myUserId = myUser.id
 
         // sending myUser and users list to client
-        socket.emit('connected', myUser, storage[myUser.id])
+        socket.emit('connected', myUser, storage[myUser.id].map(user => _.omit(user, 'chatHistory')))
 
         //adding my user to all user's list
-        users.push({ ..._.cloneDeep(myUser), currentSocketId })
+        users.push({ ...myUser, currentSocketId })
 
         // adding myUser to the every users' storage
         Object.values(storage).forEach(element => {
-            element.push({ ...myUser, currentSocketId })
+            element.push({ ..._.cloneDeep(myUser), currentSocketId })
         });
 
         //sending myUser to other clients
@@ -64,7 +64,7 @@ io.on('connection', socket => {
     socket.on('get-old-user', id => {
         const myStorage = storage[id]
         const myUser = myStorage.find(user => user.id === id)
-        const otherUsers = myStorage.filter(user => user.id !== id)
+        const otherUsers = myStorage.filter(user => user.id !== id).map(user => _.omit(user, 'chatHistory'))
 
         myUserId = id;
 
@@ -85,6 +85,12 @@ io.on('connection', socket => {
         console.log('old user connected');
     })
 
+    socket.on('get-active-chat', id => {
+        const activeChat = storage[myUserId].find(user => user.id === id).chatHistory
+
+        socket.emit('get-active-chat', activeChat)
+    })
+
     //listen client message
     socket.on('chat-message', (message, receiverId, senderId) => {
 
@@ -94,37 +100,43 @@ io.on('connection', socket => {
         receiverInMyStorage.chatHistory.push(message); //adding my message to storage[sender]
         meInReceiverStorage.chatHistory.push({ ...message, fromMe: false }) //adding my message to storage[receiver]
 
-        // hanlding messages to bots/users
+        // handling messages to bots/users
         if (receiverInMyStorage.type === 'bot') {
             const answer = receiverInMyStorage.answer(message)
             if (answer) {
                 receiverInMyStorage.chatHistory.push({ ...answer, fromMe: false })
                 meInReceiverStorage.chatHistory.push(answer)
-                socket.emit('chat-message', answer, receiverId)
+                socket.emit('chat-message', answer, receiverId) //emiting to myself
             }
         } else {
             io.to(receiverInMyStorage.currentSocketId).emit('chat-message', message, senderId)
         }
     })
 
-    //spamming bot functioning
+    // spamming bot functioning
     setTimeout(function spam() {
         const date = new Date()
         const hours = date.getHours()
         let minutes = date.getMinutes()
         minutes = minutes < 10 ? '0' + minutes : minutes;
-
         const time = `${hours}:${minutes}`
 
-        socket.emit('chat-message',
-            {
-                time: time,
-                text: "SPAM",
-                fromMe: false,
-                id: shortid.generate()
-            }, 'Spam-bot')
-        setTimeout(spam, randomInteger(10000, 120000))
-    }, randomInteger(10000, 120000))
+        const spamMessage = {
+            time: time,
+            text: "SPAM",
+            fromMe: false,
+            id: shortid.generate()
+        }
+
+        const spamBotInMyStorage = storage[myUserId].find(user => user.id === 'Spam-bot')
+        const meInSpamBotStorage = storage['Spam-bot'].find(user => user.id === myUserId)
+
+        spamBotInMyStorage.chatHistory.push(spamMessage); //adding my message to storage[myUserId]
+        meInSpamBotStorage.chatHistory.push({ ...spamMessage, fromMe: true }) //adding my message to storage[Spam-bot]
+
+        socket.emit('chat-message', spamMessage, 'Spam-bot')
+        setTimeout(spam, randomInteger(10000, 12000))
+    }, randomInteger(10000, 12000))
 
     //showing is typing
     socket.on('is-typing', (receiverId, senderId, typing) => {
