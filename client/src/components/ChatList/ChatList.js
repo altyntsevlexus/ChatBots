@@ -13,12 +13,14 @@ class ChatList extends Component {
     handleSetActiveUser = e => {
         const li = e.target.closest('li')
         if (!li) { return }
+
         const activeUser = this.props.users.find(user => user.id === li.id)
+        const roomId = [li.id, this.props.myUserId].sort().join('')
 
         if (activeUser.activeUser === true) {
             return
         } else {
-            this.props.onSetActiveUser(li.id)
+            this.props.onSetActiveUser(li.id, roomId)
         }
     }
 
@@ -46,7 +48,7 @@ class ChatList extends Component {
         const onlineUsers = users.filter(user => user.online === true)
 
         const fileteredOnline = onlineUsers.filter(user => user.name.toLowerCase().includes(filter.toLowerCase()))
-        const filteredAll = users.filter(user => user.name.toLowerCase().includes(filter.toLowerCase()))
+        const filteredAll = users.filter(user => user.name.toLowerCase()).includes(filter.toLowerCase())
 
         return (
             <div className={styles.ChatListBox}>

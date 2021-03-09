@@ -12,47 +12,36 @@ const _ = require('lodash')
 const shortid = require('shortid')
 
 //bots imports
-const { bots } = require('./bots')
+const bots = require('./bots')
 
 //randomizer
-const randomInteger = (min, max) => {
-    const random = min + Math.random() * (max - min + 1)
-    return Math.round(random)
-}
 
-const users = []
+
 
 const storage = {
-    'Echo-bot': [],
-    'Reverse-bot': [],
-    'Spam-bot': [],
-    'Ignore-bot': [],
+    users: [...bots],
+    rooms: []
 }
+
 
 
 io.on('connection', socket => {
 
-    const currentSocketId = socket.id
     let myUserId = ''
+
+    storage.users.find(user => user.id === 'Spam-bot').spamming(socket, myUserId, storage);
+
 
     //setting and sending new user data
     socket.on('set-new-user', myUser => {
 
-        //creating newUser storage
-        storage[myUser.id] = [..._.cloneDeep(bots), ..._.cloneDeep(users)]
-
         myUserId = myUser.id
 
-        // sending myUser and users list to client
-        socket.emit('connected', myUser, storage[myUser.id].map(user => _.omit(user, 'chatHistory')))
-
         //adding my user to all user's list
-        users.push({ ...myUser, currentSocketId })
+        storage.users.push(myUser)
 
-        // adding myUser to the every users' storage
-        Object.values(storage).forEach(element => {
-            element.push({ ..._.cloneDeep(myUser), currentSocketId })
-        });
+        // sending myUser and users list to client
+        socket.emit('connected', myUser, storage.users.filter(user => user.id !== myUserId))
 
         //sending myUser to other clients
         socket.broadcast.emit('add-new-user', myUser)
@@ -60,11 +49,11 @@ io.on('connection', socket => {
         console.log('new user connected');
     })
 
-    //sedning old user data
+    //sending old user data
     socket.on('get-old-user', id => {
-        const myStorage = storage[id]
-        const myUser = myStorage.find(user => user.id === id)
-        const otherUsers = myStorage.filter(user => user.id !== id).map(user => _.omit(user, 'chatHistory'))
+
+        const myUser = storage.users.find(user => user.id === id)
+        const otherUsers = storage.users.filter(user => user.id !== id)
 
         myUserId = id;
 
@@ -74,86 +63,81 @@ io.on('connection', socket => {
         //sending online status to other clients
         socket.broadcast.emit('old-user-online', id)
 
-        //updating currentSocketId
-        Object.values(storage).forEach(userStorage => userStorage.find(user => user.id === id).currentSocketId = currentSocketId);
-        users.find(user => user.id === id).currentSocketId = currentSocketId;
-
         //updating online status
-        Object.values(storage).forEach(userStorage => userStorage.find(user => user.id === id).online = true)
-        users.find(user => user.id === id).online = true
+        storage.users.find(user => user.id === id).online = true
 
         console.log('old user connected');
     })
 
-    socket.on('get-active-chat', id => {
-        const activeChat = storage[myUserId].find(user => user.id === id).chatHistory
+    socket.on('get-active-chat', (roomId) => {
+        const activeRoom = storage.rooms.find(room => room.roomId === roomId)
+        let activeChat = null
+
+        if (!activeRoom) {
+            storage.rooms.push({ roomId, chat: [] }) //adding new chat room to the storage
+            activeChat = storage.rooms.find(room => room.roomId === roomId).chat
+        } else {
+            activeChat = activeRoom.chat
+        }
 
         socket.emit('get-active-chat', activeChat)
     })
 
+    socket.on('user-joined', roomId => {
+        console.log(myUserId, ' joined room: ', storage.rooms.find(room => room.roomId === roomId).roomId);
+
+        socket.join(roomId)
+        socket.emit('user-joined', roomId)
+    })
+    socket.on('user-left', roomId => {
+        console.log(myUserId, ' left room: ', storage.rooms.find(room => room.roomId === roomId));
+        socket.leave(roomId)
+    })
+
     //listen client message
-    socket.on('chat-message', (message, receiverId, senderId) => {
+    socket.on('chat-message', (message, roomId) => {
 
-        const receiverInMyStorage = storage[senderId].find(user => user.id === receiverId)
-        const meInReceiverStorage = storage[receiverId].find(user => user.id === senderId)
+        const activeChat = storage.rooms.find(room => room.roomId === roomId).chat
 
-        receiverInMyStorage.chatHistory.push(message); //adding my message to storage[sender]
-        meInReceiverStorage.chatHistory.push({ ...message, fromMe: false }) //adding my message to storage[receiver]
+        activeChat.push(message)
 
         // handling messages to bots/users
-        if (receiverInMyStorage.type === 'bot') {
-            const answer = receiverInMyStorage.answer(message)
+        if (message.receiverId.includes('bot')) {
+            const bot = storage.users.find(user => user.id === message.receiverId)
+            const answer = bot.answer(message)
+
             if (answer) {
-                receiverInMyStorage.chatHistory.push({ ...answer, fromMe: false })
-                meInReceiverStorage.chatHistory.push(answer)
-                socket.emit('chat-message', answer, receiverId) //emiting to myself
+                activeChat.push(answer)
+                socket.emit('chat-message', answer, roomId) //emiting to myself
             }
         } else {
-            io.to(receiverInMyStorage.currentSocketId).emit('chat-message', message, senderId)
+            socket.broadcast.to(roomId).emit('chat-message', message, roomId) //io => socket
         }
     })
 
-    // spamming bot functioning
-    setTimeout(function spam() {
-        const date = new Date()
-        const hours = date.getHours()
-        let minutes = date.getMinutes()
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        const time = `${hours}:${minutes}`
-
-        const spamMessage = {
-            time: time,
-            text: "SPAM",
-            fromMe: false,
-            id: shortid.generate()
-        }
-
-        const spamBotInMyStorage = storage[myUserId].find(user => user.id === 'Spam-bot')
-        const meInSpamBotStorage = storage['Spam-bot'].find(user => user.id === myUserId)
-
-        spamBotInMyStorage.chatHistory.push(spamMessage); //adding my message to storage[myUserId]
-        meInSpamBotStorage.chatHistory.push({ ...spamMessage, fromMe: true }) //adding my message to storage[Spam-bot]
-
-        socket.emit('chat-message', spamMessage, 'Spam-bot')
-        setTimeout(spam, randomInteger(10000, 12000))
-    }, randomInteger(10000, 12000))
 
     //showing is typing
-    socket.on('is-typing', (receiverId, senderId, typing) => {
-        const receiverInMyStorage = storage[senderId].find(user => user.id === receiverId)
+    socket.on('is-typing', (roomId, typerName) => {
 
-        io.to(receiverInMyStorage.currentSocketId).emit('is-typing', senderId, typing)
+        console.log('sending is typing to: ', roomId, 'from: ', typerName);
+
+        socket.broadcast.to(roomId).emit('is-typing', typerName)
+    })
+
+    socket.on('no-longer-typing', (roomId, typerName) => {
+        console.log('sending no longer typing to: ', roomId, 'from: ', typerName);
+
+        socket.broadcast.to(roomId).emit('no-longer-typing', typerName, 'from: ', typerName)
     })
 
     //disconnecting
     socket.on('disconnect', () => {
 
-        const currentUser = users.find(user => user.id === myUserId)
+        const currentUser = storage.users.find(user => user.id === myUserId)
 
         if (currentUser) {
             socket.broadcast.emit('user-disconnected', currentUser.id)
 
-            Object.values(storage).forEach(users => currentUser.online = false)
             currentUser.online = false
         }
 

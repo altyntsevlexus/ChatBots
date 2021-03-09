@@ -7,6 +7,7 @@ import styles from './App.module.css'
 import bunnyImg from '../bunny.jpg'
 
 import { io } from "socket.io-client";
+
 const shortid = require('shortid')
 const randomName = require('random-name')
 
@@ -18,7 +19,9 @@ class App extends Component {
         socket: io('http://localhost:4000'),
         users: [],
         myUser: {},
+        roomId: '',
         currentChat: [],
+        isTyping: []
     }
     componentDidMount() {
 
@@ -43,10 +46,8 @@ class App extends Component {
                 lastMessage: 'Hello I am new in this chat!',
                 description: 'Here should be my description',
                 online: true,
-                chatHistory: [],
                 activeUser: false,
                 type: 'user',
-                isTyping: false,
                 avatar: bunnyImg
             }
 
@@ -99,37 +100,48 @@ class App extends Component {
         })
 
         //(to(socketID)) message added on socket as !fromMe
-        this.state.socket.on('chat-message', (message, senderId) => {
+        this.state.socket.on('chat-message', (message, roomId) => {
 
-            const currentUser = this.state.users.find(user => user.activeUser === true)
-            const senderUser = this.state.users.find(user => user.id === senderId)
+            console.log('message received');
 
-            if (currentUser === senderUser) {
+            if (this.state.roomId === roomId) {
                 this.setState((state) => ({
-                    currentChat: [...state.currentChat, { ...message, fromMe: false }]
+                    currentChat: [...state.currentChat, message]
                 }))
             }
         })
 
         //showing is-typing
-        this.state.socket.on('is-typing', (senderId, typing) => {
+        this.state.socket.on('is-typing', typerName => {
+
+            console.log('YES: ', typerName);
 
             this.setState((state) => {
-
-                const notActiveUsers = state.users.filter(user => user.id !== senderId)
-                const activeUser = state.users.find(user => user.id === senderId)
-
+                const newArray = [...state.isTyping, typerName]
                 return {
-                    users: [
-                        ...notActiveUsers,
-                        {
-                            ...activeUser,
-                            isTyping: typing
-                        }
-                    ].sort(sortFunction)
+                    isTyping: [...new Set(newArray)]
                 }
             })
         })
+
+        this.state.socket.on('no-longer-typing', typerName => {
+
+            console.log('NO: ', typerName);
+
+            this.setState((state) => {
+
+                const isTyping = state.isTyping
+                const index = isTyping.indexOf(typerName)
+
+                isTyping.splice(index, 1)
+
+                return {
+                    isTyping: isTyping
+                }
+            })
+        })
+
+
 
         // user discconected - updating status
         this.state.socket.on('user-disconnected', id => {
@@ -147,7 +159,7 @@ class App extends Component {
         })
     }
 
-    onSetActiveUser = id => {
+    onSetActiveUser = (id, roomId) => {
 
         this.setState((state) => {
 
@@ -155,52 +167,58 @@ class App extends Component {
             const active = state.users.find(user => user.activeUser === true)
             const other = state.users.filter(user => user.id !== id && user.activeUser !== true)
 
-            this.state.socket.emit('get-active-chat', id)
+            this.state.socket.emit('get-active-chat', roomId)
+            this.state.socket.emit('user-joined', roomId)
+            this.state.socket.emit('user-left', state.roomId)
 
-            return {
-                users: [
-                    ...other,
-                    {
-                        ...active,
-                        activeUser: false
-                    },
-                    {
-                        ...newActive,
-                        activeUser: true
-                    }
-                ].sort(sortFunction)
+
+            if (active) {
+                return {
+                    users: [
+                        ...other,
+                        {
+                            ...active,
+                            activeUser: false
+                        },
+                        {
+                            ...newActive,
+                            activeUser: true
+                        }
+                    ].sort(sortFunction),
+                    roomId: roomId,
+                    isTyping: [],
+                }
+            } else {
+                return {
+                    users: [
+                        ...other,
+                        {
+                            ...newActive,
+                            activeUser: true
+                        }
+                    ].sort(sortFunction),
+                    roomId: roomId,
+                    isTyping: [],
+                }
             }
-
         })
     }
 
-    onKeyDown = (e) => {
-        const receiverId = this.state.users.find(user => user.activeUser === true).id
-        const senderId = this.state.myUser.id
+    handleIsTyping = (e) => {
 
-        let typing = true
+        const stoppedTyping = () => this.state.socket.emit('no-longer-typing', this.state.roomId, this.state.myUser.name)
 
         if (e.key === 'Enter') {
-            typing = false;
-            this.state.socket.emit('is-typing', receiverId, senderId, typing)
+            stoppedTyping()
             return
         }
 
-        const timeOutFunction = () => {
-            typing = false;
-            this.state.socket.emit('is-typing', receiverId, senderId, typing)
-        }
-
-        this.state.socket.emit('is-typing', receiverId, senderId, typing)
-        setTimeout(timeOutFunction, 3000)
+        this.state.socket.emit('is-typing', this.state.roomId, this.state.myUser.name)
     }
 
     onSendMessage = message => {
 
-        const receiverId = this.state.users.find(user => user.activeUser === true).id
-        const senderId = this.state.myUser.id
-
-        this.state.socket.emit('chat-message', message, receiverId, senderId)
+        this.state.socket.emit('chat-message', message, this.state.roomId)
 
         this.setState((state) => ({
             currentChat: [...state.currentChat, message]
@@ -218,8 +236,8 @@ class App extends Component {
                 <Header />
                 <div className={styles.wrapper}>
                     <div className={styles.ChatBox}>
-                        {activeUser ? <ChatMain activeUser={activeUser} onSendMessage={this.onSendMessage} myUserName={this.state.myUser.name} onKeyDown={this.onKeyDown} currentChat={this.state.currentChat} /> : <p>Choose user</p>}
-                        <ChatList users={this.state.users} onSetActiveUser={this.onSetActiveUser} />
+                        {activeUser ? <ChatMain activeUser={activeUser} onSendMessage={this.onSendMessage} myUserName={this.state.myUser.name} handleIsTyping={this.handleIsTyping} myUserId={this.state.myUser.id} currentChat={this.state.currentChat} isTyping={this.state.isTyping} /> : <div className={styles.ChooseUser}>Choose user</div>}
+                        <ChatList users={this.state.users} onSetActiveUser={this.onSetActiveUser} myUserId={this.state.myUser.id} />
                     </div>
                 </div>
             </>

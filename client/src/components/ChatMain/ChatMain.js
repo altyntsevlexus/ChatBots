@@ -9,7 +9,7 @@ class ChatMain extends Component {
 
     render() {
 
-        const { name, description, isTyping, avatar } = this.props.activeUser
+        const { name, description, avatar, id } = this.props.activeUser
 
         return (
 
@@ -17,11 +17,11 @@ class ChatMain extends Component {
 
                 <ChatActiveUser name={name} description={description} avatar={avatar} />
 
-                <ChatMessages currentChat={this.props.currentChat} activeUserName={name} myUserName={this.props.myUserName} />
+                <ChatMessages currentChat={this.props.currentChat} myUserId={this.props.myUserId} />
 
-                {isTyping ? <p className={styles.IsTyping}>{name} is typing ...</p> : <p className={styles.IsTyping}></p>}
+                {this.props.isTyping.length > 0 ? <p className={styles.IsTyping}>{this.props.isTyping.map(user => (user))} is typing...</p> : <p className={styles.IsTyping}></p>}
 
-                <ChatSendForm onKeyDown={this.props.onKeyDown} onSendMessage={this.props.onSendMessage} />
+                <ChatSendForm handleIsTyping={this.props.handleIsTyping} onSendMessage={this.props.onSendMessage} myUserId={this.props.myUserId} myUserName={this.props.myUserName} activeUserId={id} />
             </div>
         )
     }

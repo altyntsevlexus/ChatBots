@@ -31,7 +31,9 @@ class ChatSendForm extends Component {
             const time = `${hours}:${minutes}`
 
             this.props.onSendMessage({
-                fromMe: true,
+                senderId: this.props.myUserId,
+                senderName: this.props.myUserName,
+                receiverId: this.props.activeUserId,
                 text: trimText,
                 time: time,
                 id: shortid.generate()
@@ -44,11 +46,12 @@ class ChatSendForm extends Component {
 
     render() {
 
-        const { onKeyDown } = this.props
+        const { handleIsTyping } = this.props
 
         return (
             <form className={styles.SendMessageForm} onSubmit={this.handleSendMessage}>
-                <input className={styles.SendMessageInput} name='message' value={this.state.message} onChange={this.handleWriteMessage} onKeyPress={onKeyDown} placeholder='Start chatting!' />
+                <input className={styles.SendMessageInput} name='message' value={this.state.message} onChange={this.handleWriteMessage}
+                    onKeyPress={handleIsTyping} placeholder='Type your message' />
                 <button className={styles.SendMessageButton}>Send message</button>
             </form>)
     }
