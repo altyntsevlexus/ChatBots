@@ -48,7 +48,7 @@ class ChatList extends Component {
         const onlineUsers = users.filter(user => user.online === true)
 
         const fileteredOnline = onlineUsers.filter(user => user.name.toLowerCase().includes(filter.toLowerCase()))
-        const filteredAll = users.filter(user => user.name.toLowerCase()).includes(filter.toLowerCase())
+        const filteredAll = users.filter(user => user.name.toLowerCase().includes(filter.toLowerCase()))
 
         return (
             <div className={styles.ChatListBox}>
