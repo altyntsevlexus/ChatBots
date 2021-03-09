@@ -90,7 +90,9 @@ io.on('connection', socket => {
         socket.emit('user-joined', roomId)
     })
     socket.on('user-left', roomId => {
-        console.log(myUserId, ' left room: ', storage.rooms.find(room => room.roomId === roomId).roomId);
+        if (storage.rooms.find(room => room.roomId === roomId)) {
+            console.log(myUserId, ' left room: ', storage.rooms.find(room => room.roomId === roomId).roomId);
+        }
         socket.leave(roomId)
     })
 
