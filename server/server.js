@@ -90,7 +90,7 @@ io.on('connection', socket => {
         socket.emit('user-joined', roomId)
     })
     socket.on('user-left', roomId => {
-        console.log(myUserId, ' left room: ', storage.rooms.find(room => room.roomId === roomId));
+        console.log(myUserId, ' left room: ', storage.rooms.find(room => room.roomId === roomId).roomId);
         socket.leave(roomId)
     })
 
@@ -119,13 +119,11 @@ io.on('connection', socket => {
     //showing is typing
     socket.on('is-typing', (roomId, typerName) => {
 
-        console.log('sending is typing to: ', roomId, 'from: ', typerName);
 
         socket.broadcast.to(roomId).emit('is-typing', typerName)
     })
 
     socket.on('no-longer-typing', (roomId, typerName) => {
-        console.log('sending no longer typing to: ', roomId, 'from: ', typerName);
 
         socket.broadcast.to(roomId).emit('no-longer-typing', typerName, 'from: ', typerName)
     })
